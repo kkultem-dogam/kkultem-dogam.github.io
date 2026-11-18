@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>꿀템도감 | 번호 검색</title>
+<meta name="description" content="꿀템도감 영상 속 상품을 번호로 찾아보세요.">
+<meta property="og:title" content="꿀템도감 | 번호 검색">
+<meta property="og:image" content="profile.png">
+<link rel="icon" href="profile.png">
+<style>
+:root{--bg:#FFF6E0;--card:#FFFFFF;--ink:#3B2416;--muted:#8A7563;--honey:#FFC83D;--honey-soft:#FFE8A3;--line:#F0E2C2}
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:light}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;-webkit-font-smoothing:antialiased}
+.notice{position:sticky;top:0;z-index:5;background:var(--ink);color:var(--honey-soft);font-size:12px;line-height:1.4;text-align:center;padding:8px 16px}
+.wrap{max-width:480px;margin:0 auto;padding:24px 16px 48px}
+header{text-align:center;margin-bottom:20px}
+header img{width:88px;height:88px;border-radius:50%;box-shadow:0 0 0 4px var(--card),0 4px 14px rgba(59,36,22,.15)}
+header h1{font-size:22px;font-weight:800;margin-top:12px;letter-spacing:-.02em}
+header a.handle{display:inline-block;margin-top:4px;color:var(--muted);font-size:14px;text-decoration:none}
+header p{margin-top:10px;font-size:14px;color:var(--muted)}
+.search{position:sticky;top:46px;z-index:4;padding:8px 0;background:var(--bg)}
+.search input{width:100%;font-size:17px;padding:14px 16px 14px 44px;border:2px solid var(--ink);border-radius:14px;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%233B2416' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='9' cy='9' r='6'/%3E%3Cpath d='m14 14 4 4'/%3E%3C/svg%3E") no-repeat 14px center;color:var(--ink);outline:none;-webkit-appearance:none}
+.search input:focus{box-shadow:0 0 0 4px var(--honey-soft)}
+.count{font-size:13px;color:var(--muted);margin:10px 2px}
+ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+li a{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;text-decoration:none;color:inherit;min-height:64px;transition:transform .08s}
+li a:active{transform:scale(.98)}
+li.hit a{border:2px solid var(--honey);box-shadow:0 0 0 4px var(--honey-soft)}
+.no{flex:none;min-width:58px;text-align:center;font-weight:800;font-size:15px;background:var(--honey);color:var(--ink);border-radius:999px;padding:6px 10px;font-variant-numeric:tabular-nums}
+.thumb{flex:none;width:44px;height:44px;border-radius:10px;object-fit:cover;background:var(--honey-soft)}
+.name{flex:1;font-size:16px;font-weight:600;line-height:1.35;word-break:keep-all}
+.go{flex:none;color:var(--muted);font-size:20px}
+.more[hidden]{display:none}
+.more{display:block;width:100%;margin-top:14px;padding:14px;font-size:15px;font-weight:700;border:0;border-radius:14px;background:var(--ink);color:var(--honey-soft)}
+.empty{text-align:center;color:var(--muted);padding:40px 0;font-size:15px;line-height:1.6}
+footer{margin-top:32px;text-align:center;font-size:12px;color:var(--muted);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="notice">이 페이지는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</div>
+<div class="wrap">
+  <header>
+    <img src="profile.png" alt="">
+    <h1>꿀템도감</h1>
+    <a class="handle" href="https://www.instagram.com/must_have_item_guide/" rel="noopener">@must_have_item_guide</a>
+    <p>영상 속 번호를 검색하세요 👇</p>
+  </header>
+  <div class="search"><input id="q" type="search" inputmode="search" placeholder="번호 또는 상품명 (예: 12)" autocomplete="off" aria-label="번호 또는 상품명 검색"></div>
+  <div class="count" id="count"></div>
+  <ul id="list"></ul>
+  <button class="more" id="more" hidden>더 보기</button>
+  <footer>가격·재고·배송 정보는 쿠팡 상품 페이지에서 확인해 주세요.<br>© 꿀템도감</footer>
+</div>
+<script id="data" type="application/json">[]</script>
+<script>
+const items = JSON.parse(document.getElementById('data').textContent).sort((a,b)=>b.no-a.no);
+const list = document.getElementById('list'), q = document.getElementById('q');
+const countEl = document.getElementById('count'), moreBtn = document.getElementById('more');
+const PAGE = 60; let shown = PAGE, current = items, exactNo = null;
+
+function row(it){
+  const li = document.createElement('li'); if (it.no === exactNo) li.className = 'hit';
+  const a = document.createElement('a'); a.href = it.link; a.target = '_blank'; a.rel = 'sponsored nofollow noopener';
+  const no = document.createElement('span'); no.className = 'no'; no.textContent = it.no + '번'; a.append(no);
+  if (it.image){ const im = document.createElement('img'); im.className='thumb'; im.loading='lazy'; im.alt=''; im.src=it.image; a.append(im); }
+  const nm = document.createElement('span'); nm.className = 'name'; nm.textContent = it.name; a.append(nm);
+  const go = document.createElement('span'); go.className = 'go'; go.textContent = '›'; a.append(go);
+  li.append(a); return li;
+}
+function render(){
+  list.replaceChildren(...current.slice(0, shown).map(row));
+  moreBtn.hidden = current.length <= shown;
+  if (!items.length) { list.innerHTML = '<li class="empty">곧 첫 꿀템이 등록됩니다 🍯</li>'; countEl.textContent=''; return; }
+  if (!current.length) { list.innerHTML = '<li class="empty">'+(exactNo!==null? exactNo+'번 상품을 찾을 수 없어요.<br>번호를 다시 확인해 주세요.' : '검색 결과가 없어요.')+'</li>'; }
+  countEl.textContent = q.value.trim() ? `검색 결과 ${current.length}개` : `전체 ${items.length}개 · 최신순`;
+}
+function search(){
+  const v = q.value.trim(); shown = PAGE; exactNo = null;
+  if (!v) current = items;
+  else if (/^\d+$/.test(v)) {
+    exactNo = Number(v);
+    const exact = items.filter(it => it.no === exactNo);
+    current = exact.length ? exact : items.filter(it => String(it.no).startsWith(v));
+  } else {
+    const k = v.replace(/\s/g,'').toLowerCase();
+    current = items.filter(it => it.name.replace(/\s/g,'').toLowerCase().includes(k));
+  }
+  render();
+}
+q.addEventListener('input', search);
+moreBtn.addEventListener('click', () => { shown += PAGE; render(); });
+const pre = new URLSearchParams(location.search).get('q') || location.hash.slice(1);
+if (pre) q.value = decodeURIComponent(pre);
+search();
+</script>
+</body>
+</html>
